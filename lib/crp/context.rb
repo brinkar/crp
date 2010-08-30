@@ -34,6 +34,8 @@ module CRP
 				instance_eval &block
 			end
 			@processes.push fiber
+			# TODECIDE: Should we yield and wait for the process to exit before we resume the parent?
+			# This method could then be called fork
 		end
 	
 		def stop
@@ -42,6 +44,7 @@ module CRP
 		
 		def skip
 			@processes.push Fiber.current
+			Fiber.yield
 		end
 		
 		def sequence(&block)
