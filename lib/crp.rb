@@ -3,6 +3,8 @@ require "fiber"
 
 require "crp/context"
 require "crp/sequence"
+require "crp/channel"
+require "crp/select"
 
 module CRP
 
