@@ -8,24 +8,17 @@ module CRP
 			process &block if block_given?
 		end
 		
+		# TODO: Move to a scheduler class, so that the context is clear
 		def run
 			@processes.pop do |process|
 				if process.is_a?(Array) and process.size == 2
 					process, data = process
 					process.resume data if process.alive?
-#				elsif process.is_a?(Array) and process.size == 3
-#					puts process.inspect
-#					process, callback, data = process
-#					process.resume [callback, data] if process.alive?
 				elsif process.is_a?(Fiber)
 					process.resume if process.alive?
 				end
 				EM.next_tick { run }
 			end
-		end
-		
-		def to_s
-			"Processes: #{@processes.inspect}\nChannels: #{@channels.inspect}"
 		end
 		
 		private
@@ -49,6 +42,7 @@ module CRP
 			Fiber.yield
 		end
 		
+		# TODO: Should it be here?		
 		def sequence(&block)
 			seq = Sequence.new self
 			seq.instance_eval &block
@@ -129,6 +123,7 @@ module CRP
 			end
 		end
 		
+		# TODO: Make internal to select
 		def cancel_all(state)
 			state[:reads_waiting].each do |rw|
 				channel, cb = rw
@@ -140,45 +135,6 @@ module CRP
 			end
 			EM.cancel_timer state[:timer] if state[:timer]
 		end
-
-=begin		
-		def select(&block)
-			s = Select.new &block
-			current_fiber = Fiber.current
-			# Are any readers ready?
-			if reader = s.reads.find { |read| !@channels[read[:channel]].empty? rescue false }
-				@channels[reader[:channel]].pop do |data|
-					fiber, data = data
-					@processes.push [current_fiber, reader[:callback], data]
-					@processes.push fiber
-				end
-			# Are any writers ready?				
-			elsif writer = s.writes.find { |write| @channels[write[:channel]].reader? }
-				@channels[writer[:channel]].push [current_fiber, writer[:data]]
-				@processes.push [current_fiber, writer[:callback], nil]
-			# Is there a	timer, and is it ready?
-			elsif t = s.timer and Time.now >= (t[:time] + t[:seconds])
-				@processes.push [current_fiber, t[:callback], nil]
-			# Is there a skip?
-			elsif skip = s.skip
-				@processes.push [current_fiber, skip[:callback], nil]
-			# Well then we have to wait for something to happen...
-			else
-				waiters = []
-				s.reads.each do |reader|
-					waiters << @channels[reader[:channel]].wait_for_write do
-						@channels[reader[:channel]].pop do |data|
-							fiber, data = data
-							@processes.push [current_fiber, reader[:callback], data]
-							@processes.push fiber
-						end
-					end
-				end
-			end
-			callback, data = Fiber.yield
-			callback.call data if callback
-		end
-=end
 
 	end
 	
