@@ -1,0 +1,9 @@
+TODO
+====
+
+- Dining Philosophers
+- Rename to Parseq
+- EM.par and EM.seq as primary methods
+- Fair and random selects
+- Named processes and channels
+- NETWORK!
