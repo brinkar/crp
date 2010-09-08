@@ -23,9 +23,13 @@ module CRP
 		
 		private
 		
-		def process(&block)
-			fiber = Fiber.new do 
-				instance_eval &block
+		def process(name = nil, *args, &block)
+			if name
+				fiber = Fiber.new do 
+					instance_exec *args, &(CRP.processes[name])
+				end
+			else
+				fiber = Fiber.new { instance_eval &block }
 			end
 			@processes.push fiber
 			# TODO: Should we yield and wait for the process to exit before we resume the parent?

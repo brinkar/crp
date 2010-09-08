@@ -8,11 +8,24 @@ require "crp/select"
 
 module CRP
 
-	def self.run(&block)
-		EM.run do
-			context = Context.new &block
-			context.run
+	class << self
+	
+		def run(&block)
+			EM.run do
+				context = Context.new &block
+				context.run
+			end
 		end
+	
+		def process(name, &block)
+			@processes = {} unless @processes.is_a?(Hash)
+			@processes[name] = block 
+		end
+	
+		def processes
+			@processes
+		end
+		
 	end
 	
 end

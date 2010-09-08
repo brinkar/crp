@@ -34,6 +34,19 @@ class TestCRP < Test::Unit::TestCase
 		assert_equal out, "Process 1\nProcess 2"		
 	end
 	
+	def test_process
+		out = []
+		CRP.process :test do |i|
+			write "test", "Process #{i}"
+		end
+		CRP.run do
+			process :test, 1
+			process :test, 2
+			process { 2.times { out << read("test") }; stop }
+		end
+		assert_equal out, ["Process 1", "Process 2"]
+	end
+	
 	def test_write_read
 		out = ""
 		CRP.run do
