@@ -6,6 +6,7 @@ class TestSelect < Test::Unit::TestCase
 	def test_reads
 		out = ""
 		CRP.run do
+			channel "a", "b"
 			process do
 				2.times do 
 					select do
@@ -19,6 +20,7 @@ class TestSelect < Test::Unit::TestCase
 		assert_equal out, "ab"
 		out = ""
 		CRP.run do
+			channel "a", "b"		
 			process { write "a", "a"; write "b", "b"; stop }		
 			process do
 				2.times do 
@@ -35,6 +37,7 @@ class TestSelect < Test::Unit::TestCase
 	def test_writes
 		out = ""
 		CRP.run do
+			channel "a", "b"
 			process do
 				2.times do 
 					select do
@@ -48,6 +51,7 @@ class TestSelect < Test::Unit::TestCase
 		assert_equal out, "ab"
 		out = ""
 		CRP.run do
+			channel "a", "b"
 			process { out << read("a"); out << read("b"); stop }		
 			process do
 				2.times do 
@@ -64,6 +68,7 @@ class TestSelect < Test::Unit::TestCase
 	def test_read_write
 		out = ""
 		CRP.run do
+			channel "a", "b"
 			process do
 				2.times do 
 					select do
@@ -80,6 +85,7 @@ class TestSelect < Test::Unit::TestCase
 	def test_write_read
 		out = ""
 		CRP.run do
+			channel "a", "b"
 			process do
 				2.times do 
 					select do
@@ -96,6 +102,7 @@ class TestSelect < Test::Unit::TestCase
 	def test_skip
 		out = ""
 		CRP.run do
+			channel "a"
 			process do
 				2.times do 
 					select do
@@ -113,6 +120,7 @@ class TestSelect < Test::Unit::TestCase
 	def test_timeout
 		out = ""
 		CRP.run do
+			channel "a"
 			process do
 				2.times do 
 					select do

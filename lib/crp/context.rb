@@ -54,7 +54,6 @@ module CRP
 		end
 		
 		def write(channel, data)
-			@channels[channel] = Channel.new unless @channels[channel].is_a?(Channel)
 			current_fiber = Fiber.current
 			@channels[channel].write data do
 				@processes.push current_fiber
@@ -64,7 +63,6 @@ module CRP
 		end
 		
 		def read(channel)
-			@channels[channel] = Channel.new unless @channels[channel].is_a?(Channel)
 			current_fiber = Fiber.current
 			@channels[channel].read do |data|
 				yield data if block_given?
@@ -81,6 +79,13 @@ module CRP
 				@processes.push [current_fiber, end_time-start_time]
 			end
 			Fiber.yield
+		end
+		
+		def channel(*names)
+			# TODO: Buffering and protocol
+			names.each do |name|
+				@channels[name] = Channel.new
+			end
 		end
 
 		def select(&block)
@@ -99,7 +104,6 @@ module CRP
 				# Wait for something to happen			
 				state = {:reads_waiting => [], :writes_waiting => [], :timer => nil}
 				s.reads.each do |r|
-					@channels[r[:channel]] = Channel.new unless @channels[r[:channel]].is_a?(Channel)
 					cb = @channels[r[:channel]].read do |data|
 						cancel_all state
 						r[:callback].call data
@@ -108,7 +112,6 @@ module CRP
 					state[:reads_waiting] << [r[:channel], cb]
 				end
 				s.writes.each do |w|
-					@channels[w[:channel]] = Channel.new unless @channels[w[:channel]].is_a?(Channel)
 					cb = @channels[w[:channel]].write w[:data] do
 						cancel_all state
 						w[:callback].call if w[:callback]

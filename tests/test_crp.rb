@@ -40,6 +40,7 @@ class TestCRP < Test::Unit::TestCase
 			write "test", "Process #{i}"
 		end
 		CRP.run do
+			channel "test"
 			process :test, 1
 			process :test, 2
 			process { 2.times { out << read("test") }; stop }
@@ -50,6 +51,7 @@ class TestCRP < Test::Unit::TestCase
 	def test_write_read
 		out = ""
 		CRP.run do
+			channel "test"
 			process { write "test", "From process 1" }
 			process { msg = read "test"; out << msg; stop }
 		end
@@ -59,6 +61,7 @@ class TestCRP < Test::Unit::TestCase
 	def test_read_write
 		out = ""
 		CRP.run do
+			channel "test"
 			process { msg = read "test"; out << msg; stop }
 			process { write "test", "From process 1" }
 		end
@@ -68,6 +71,7 @@ class TestCRP < Test::Unit::TestCase
 	def test_triple
 		out = ""
 		CRP.run do
+			channel "a", "b"
 			process { write "a", "From process 1" }			
 			process { write "b", "From process 2" }
 			process { msg1 = read("a"); msg2 = read("b"); out << "#{msg1} #{msg2}"; stop }			
@@ -86,6 +90,7 @@ class TestCRP < Test::Unit::TestCase
 	def test_loop
 		out = ""
 		CRP.run do
+			channel "test"
 			process { 10.times { |i| write("test", i) }; stop }
 			process { loop { out << read("test").to_s } }
 		end
