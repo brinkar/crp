@@ -1,5 +1,28 @@
 module CRP
 
+	class ChannelExists < Exception; end
+
+	class StopDeferrable
+		include EM::Deferrable
+
+		def initialize(channels)
+			@channels = channels
+			@channels.each do |c|
+				c.stop self
+			end
+		end
+		
+		def done(channel)
+			@channels.delete(channel)
+			check_channels
+		end
+		
+		def check_channels
+			set_deferred_status(:succeeded) if @channels.empty?
+		end
+		
+	end
+
 	class Context
 	
 		def initialize(&block)
@@ -37,7 +60,17 @@ module CRP
 		end
 	
 		def stop
-			EM.stop_event_loop
+			channels_to_stop = @channels.select do |name, c|
+				c.is_a?(TCP::ChannelServer) or c.is_a?(TCP::ChannelClient)
+			end.values
+			if channels_to_stop.empty?
+				EM.stop_event_loop
+			else
+				stopdef = StopDeferrable.new channels_to_stop
+				stopdef.callback do
+					EM.stop_event_loop
+				end
+			end
 		end
 		
 		def skip
@@ -81,11 +114,18 @@ module CRP
 			Fiber.yield
 		end
 		
-		def channel(*names)
+		def channel(name, options = {})
 			# TODO: Buffering and protocol
-			names.each do |name|
-				@channels[name] = Channel.new
+			raise ChannelExists if @channels.has_key?(name)
+			case options[:type]
+			when :server
+				channel = TCP::ChannelServer.new options[:host], options[:port]
+			when :client
+				channel = TCP::ChannelClient.new options[:host], options[:port]
+			else
+				channel = Channel.new
 			end
+			@channels[name] = channel
 		end
 
 		def select(&block)

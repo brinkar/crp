@@ -6,6 +6,7 @@ TODO
 - EM.par and EM.seq as primary methods
 - Traces
 - Fair and random selects
+- IO
 - Channels
 	- Buffering
 	- Protocol

@@ -6,6 +6,8 @@ require "crp/sequence"
 require "crp/channel"
 require "crp/select"
 
+require "crp/tcpchannel"
+
 module CRP
 
 	class << self
