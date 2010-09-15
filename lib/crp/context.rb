@@ -1,6 +1,7 @@
 module CRP
 
 	class ChannelExists < Exception; end
+	class UnknownChannelType < Exception; end
 
 	class StopDeferrable
 		include EM::Deferrable
@@ -26,6 +27,7 @@ module CRP
 	class Context
 	
 		def initialize(&block)
+			CRP.context = self
 			@channels = {}
 			@processes = EM::Queue.new
 			process &block if block_given?
@@ -44,21 +46,6 @@ module CRP
 			end
 		end
 		
-		private
-		
-		def process(name = nil, *args, &block)
-			if name
-				fiber = Fiber.new do 
-					instance_exec *args, &(CRP.processes[name])
-				end
-			else
-				fiber = Fiber.new { instance_eval &block }
-			end
-			@processes.push fiber
-			# TODO: Should we yield and wait for the process to exit before we resume the parent?
-			# This method could then be called fork
-		end
-	
 		def stop
 			channels_to_stop = @channels.select do |name, c|
 				c.is_a?(TCP::ChannelServer) or c.is_a?(TCP::ChannelClient)
@@ -71,6 +58,53 @@ module CRP
 					EM.stop_event_loop
 				end
 			end
+		end
+		
+		private
+		
+		def process(*args, &block)
+			name = args.first.is_a?(String) ? args.first : nil
+			options = if args.first.is_a?(Hash)
+				args.first
+			elsif args[1].is_a?(Hash)
+				args[1]
+			else
+				{}
+			end
+			if options.has_key?(:fork) and options[:fork]
+				channel_servers = []
+				@channels.each do |name, c|
+					channel_servers << {:name => name, :host => c.host, :port => c.port} if c.is_a?(TCP::ChannelServer)
+				end
+				channel_proc = Proc.new do
+					channel_servers.each do |c|
+						channel c[:name], :client, :host => c[:host], :port => c[:port]
+					end
+				end
+				if name.nil?
+					blk = block
+				else
+					blk = Proc.new { process name }
+				end
+				EM.fork_reactor do
+					context = CRP::Context.new do
+						instance_eval &channel_proc
+						instance_eval &blk
+					end
+					context.run
+				end
+			else
+				if name
+					fiber = Fiber.new do 
+						instance_exec *options[:args], &(CRP.processes[name])
+					end
+				else
+					fiber = Fiber.new { instance_eval &block }
+				end
+				@processes.push fiber
+			end
+			# TODO: Should we yield and wait for the process to exit before we resume the parent?
+			# This method could then be called fork
 		end
 		
 		def skip
@@ -114,16 +148,18 @@ module CRP
 			Fiber.yield
 		end
 		
-		def channel(name, options = {})
+		def channel(name, type = :standard, options = {})
 			# TODO: Buffering and protocol
 			raise ChannelExists if @channels.has_key?(name)
-			case options[:type]
+			case type
+			when :standard
+				channel = Channel.new
 			when :server
 				channel = TCP::ChannelServer.new options[:host], options[:port]
 			when :client
 				channel = TCP::ChannelClient.new options[:host], options[:port]
 			else
-				channel = Channel.new
+				raise UnknownChannelType
 			end
 			@channels[name] = channel
 		end

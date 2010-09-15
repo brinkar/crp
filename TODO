@@ -1,13 +1,12 @@
 TODO
 ====
 
-- Dining Philosophers
-- Rename to Parseq
-- EM.par and EM.seq as primary methods
+- Refactor!
 - Traces
 - Fair and random selects
-- IO
+- Dining Philosophers example
 - Channels
 	- Buffering
 	- Protocol
-- NETWORK!
+	- IO
+	- Select over network?

@@ -1,4 +1,5 @@
 require 'yajl'
+require "socket"
 
 module CRP
 
@@ -10,7 +11,7 @@ module CRP
 		end
 	
 		def self.generate_id
-			((0..9).to_a+('a'..'z').to_a).sample(5).join("")
+			rand("99_99_99")
 		end
 	
 		class ServerConnection < EM::Connection
@@ -40,9 +41,14 @@ module CRP
 		
 		class ChannelServer < Channel
 		
-			def initialize(host, port)
+			attr_reader :host, :port
+		
+			def initialize(host = nil, port = nil)
 				super()
-				EM.start_server host, port, TCP::ServerConnection, self
+				host ||= "localhost"
+				port ||= 0
+				server = EM.start_server host, port, TCP::ServerConnection, self
+				@port, @host = Socket.unpack_sockaddr_in(EM.get_sockname(server))
 				@connections = []
 				@stopdef = nil
 			end
@@ -50,14 +56,16 @@ module CRP
 			def handle(con, msg)
 				type, id, data = msg[:type], msg[:id], msg[:data]
 				case type
+				when "stop"
+					CRP.context.stop
 				when "write"
 					if reader?
 						con.send_data CRP::TCP.stanza(:response, id)
 						@readq.shift.call data
 					else
-						@writeq << Proc.new do
+						@writeq << [data, Proc.new do
 							con.send_data CRP::TCP.stanza(:response, id)
-						end
+						end]
 					end
 				when "read"
 					if writer?
@@ -89,6 +97,7 @@ module CRP
 					@stopdef.done self
 				else
 					@connections.each do |c|
+						c.send_data CRP::TCP.stanza(:stop, CRP::TCP.generate_id)
 						c.close_connection_after_writing
 					end
 				end
@@ -128,8 +137,12 @@ module CRP
 			
 			def handle(msg)
 				type, id, data = msg[:type], msg[:id], msg[:data]
-				if @response_queue.has_key?(id)
-					@response_queue[id].call data
+				if type == "stop"
+					CRP.context.stop
+				else
+					if @response_queue.has_key?(id)
+						@response_queue[id].call data
+					end
 				end
 			end
 		
@@ -137,7 +150,8 @@ module CRP
 		
 		class ChannelClient
 		
-			def initialize(host, port)
+			def initialize(host = "localhost", port)
+				raise ArgumentError if port.nil?
 				@con = EM.connect host, port, ClientConnection, self
 				@stopdef = nil
 			end
@@ -172,6 +186,7 @@ module CRP
 			
 			def stop(stopdef)
 				@stopdef = stopdef
+				@con.send_data CRP::TCP.stanza(:stop, CRP::TCP.generate_id)
 				@con.close_connection_after_writing
 			end
 		

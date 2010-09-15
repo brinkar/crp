@@ -15,7 +15,7 @@ module CRP
 		def run(&block)
 			EM.run do
 				context = Context.new &block
-				context.run
+				@context.run
 			end
 		end
 	
@@ -27,6 +27,14 @@ module CRP
 		def processes
 			@processes
 		end
+		
+		def context=(c)
+			@context = c
+		end
+	
+		def context
+			@context
+		end	
 		
 	end
 	

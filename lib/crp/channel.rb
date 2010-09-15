@@ -19,8 +19,8 @@ module CRP
 		def read(&cb)
 			if writer?
 				data, wcb = @writeq.shift
-				cb.call data
 				wcb.call
+				cb.call data
 			else
 				@readq << cb
 			end
