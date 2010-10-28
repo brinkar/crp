@@ -12,9 +12,9 @@ I won't write any more before this library has proven itself a bit more, but bas
 Installation
 ------------
 
-This library will only work on Ruby 1.9.1. Anything before that is a definite no-go (it uses fibers) and Ruby 1.9.2 mostly works with a few itches. Those will get sorted out soon I hope.
+This library will only work on Ruby 1.9.1. Anything before that is a definite no-go (it uses fibers) and Ruby 1.9.2 mostly works with a few itches. If you are frightened by this paragraph, I would suggest you to try out RVM which makes it easy to install different ruby versions side by side.
 
-To install, basically clone this repository install a couple of gems:
+To install, basically clone this repository and install a couple of gems:
 <pre>
 git clone http://github.com/brinkar/crp.git
 gem install eventmachine yajl
