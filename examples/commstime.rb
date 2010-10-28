@@ -4,6 +4,11 @@ N = 5000
 
 CRP.run do
 
+	channel "a"
+	channel "b"
+	channel "c"
+	channel "d"		
+
 	process do
 		loop do
 			write "a", 0

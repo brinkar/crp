@@ -1,8 +1,11 @@
+puts "This example does not work yet, sorry"
+exit
+
 require "crp"
 
 # TODO: We need named processes.
 # TODO: Process initial data, also channels. Eg. 5 different left channels. Can be done with eg. "down#{i}"
-
+=begin
 CRP.process "philosopher" do |id|
 	eat = 0
 	loop do
@@ -53,5 +56,5 @@ CRP.run do
 	5.times { |i| process "philosopher", i }
 	5.times { |i| process "fork", i }
 end
-
+=end
 

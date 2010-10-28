@@ -1,23 +1,22 @@
 require "crp"
 
-CRP.process "commstime" do |forked|
+CRP.process "commstime" do
 
 	n = 5000
-	channel_type = forked ? :server : :standard
 
-	channel "a", channel_type
-	channel "b", channel_type
-	channel "c", channel_type
-	channel "d", channel_type
+	channel "a", :server
+	channel "b", :server
+	channel "c", :server
+	channel "d", :server
 
-	process :fork => forked do
+	process :fork => true do
 		loop do
 			write "a", 0
 			c = read "c"
 		end	
 	end
 	
-	process :fork => forked do
+	process :fork => true do
 		loop do
 			msg = read "a"
 			write "b", msg
@@ -25,7 +24,7 @@ CRP.process "commstime" do |forked|
 		end	
 	end
 
-	process :fork => forked do
+	process :fork => true do
 		loop do
 			write "c", read("b")
 		end	
@@ -44,8 +43,6 @@ CRP.process "commstime" do |forked|
 
 end
 
-[false, true].each do |forked|
-	CRP.run { process "commstime", :args => [forked] }
-end
+CRP.run { process "commstime" }
 
 

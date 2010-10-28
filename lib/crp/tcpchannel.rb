@@ -11,7 +11,7 @@ module CRP
 		end
 	
 		def self.generate_id
-			rand("99_99_99")
+			rand(99_99_99)
 		end
 	
 		class ServerConnection < EM::Connection

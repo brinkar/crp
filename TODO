@@ -1,12 +1,21 @@
 TODO
 ====
 
-- Refactor!
-- Traces
-- Fair and random selects
-- Dining Philosophers example
+- Processes
+	- Baseprocess and modules for added features
+	- Process files (that can be sent over network)
 - Channels
+	- Basechannel and modules for specific implementations
 	- Buffering
 	- Protocol
 	- IO
 	- Select over network?
+- Infrastructure
+	- Readme
+	- API docs
+	- Gem
+	- Github	
+- Traces
+	- Fair and random selects
+	- Dining Philosophers example
+

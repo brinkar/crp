@@ -39,6 +39,7 @@ end
 
 n = 10000000
 k = 10
+cores = 2
 
 puts "=========\n* Running serial version"
 t = Time.now
@@ -51,13 +52,13 @@ t = Time.now
 CRP.run { process "mc_pi_parallel", :args => [n, false, k] }
 t_par1 = Time.now - t
 puts "Time used:\t#{t_par1.round(2)} s"
-puts "Speedup:\t#{((t_serial/t_par1)/2).round(2)}"
+puts "Speedup:\t#{((t_serial/t_par1)/cores).round(2)}"
 
 puts "---------\n* Running forked parallel version"
 t = Time.now
 CRP.run { process "mc_pi_parallel", :args => [n, true, k] }
 t_par2 = Time.now - t
 puts "Time used:\t#{t_par2.round(2)} s" 
-puts "Speedup:\t#{((t_serial/t_par2)/2).round(2)}"
+puts "Speedup:\t#{((t_serial/t_par2)/cores).round(2)}"
 puts "========="
 
