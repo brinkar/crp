@@ -17,7 +17,7 @@ This library will only work on Ruby 1.9.1. Anything before that is a definite no
 To install, basically clone this repository and install a couple of gems:
 <pre>
 git clone http://github.com/brinkar/crp.git
-gem install eventmachine yajl
+gem install eventmachine yajl-ruby
 </pre>
 
 Usage
